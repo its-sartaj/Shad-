@@ -70,7 +70,7 @@ const AppShell: React.FC = () => {
         </div>
       )}
 
-      <main className="flex-1">{renderPage()}</main>
+      <main key={route} className="flex-1 animate-fadeIn">{renderPage()}</main>
 
       <Footer />
       <WhatsAppFloatingButton />

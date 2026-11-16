@@ -363,7 +363,7 @@ export const NotesPage: React.FC = () => {
             return (
               <article
                 key={note.id}
-                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 flex flex-col justify-between space-y-4"
+                className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 flex flex-col justify-between space-y-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">

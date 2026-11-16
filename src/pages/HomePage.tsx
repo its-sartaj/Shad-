@@ -53,7 +53,7 @@ export const HomePage: React.FC = () => {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
               <p className="text-xl sm:text-2xl font-bold font-mono text-[#0F2942] dark:text-amber-400 tabular-nums">
                 {stat.value}
@@ -92,7 +92,7 @@ export const HomePage: React.FC = () => {
               return (
                 <article
                   key={course.id}
-                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col"
+                  className="group rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="aspect-[4/3] bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
                     {course.imageUrl ? (
@@ -100,7 +100,7 @@ export const HomePage: React.FC = () => {
                         src={course.imageUrl}
                         alt={course.title}
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0F2942] to-slate-800 text-white p-6 text-center">
@@ -147,7 +147,7 @@ export const HomePage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setRoute(PageRoute.DASHBOARD)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer shadow-sm active:scale-[0.98] transition-all duration-200"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Enrolled</span>
@@ -156,7 +156,7 @@ export const HomePage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setActivePaymentCourse(course)}
-                          className="px-4 py-2 rounded-lg bg-[#0F2942] hover:bg-[#163a5c] dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-[#0F2942] hover:bg-[#163a5c] dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer"
                         >
                           Enroll &amp; Pay Fees
                         </button>

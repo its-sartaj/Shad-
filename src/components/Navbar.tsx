@@ -79,14 +79,14 @@ export const Navbar: React.FC = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#0F2942] dark:hover:text-white transition-colors cursor-pointer"
+            className="p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#0F2942] dark:hover:text-white transition-all duration-300 hover:rotate-12 active:scale-95 cursor-pointer"
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode for night study'}
             title={theme === 'dark' ? 'Day Mode' : 'Night Study Mode'}
           >
             {theme === 'dark' ? (
-              <Sun className="w-[18px] h-[18px] text-amber-400" />
+              <Sun className="w-[18px] h-[18px] text-amber-400 transition-transform duration-300" />
             ) : (
-              <Moon className="w-[18px] h-[18px]" />
+              <Moon className="w-[18px] h-[18px] transition-transform duration-300" />
             )}
           </button>
 
@@ -100,7 +100,7 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNav(PageRoute.ADMIN)}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all duration-200 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer shadow-sm hover:shadow-md"
               title="Admin & Teacher Dashboard"
             >
               <ShieldCheck className="w-4 h-4" />
@@ -112,7 +112,7 @@ export const Navbar: React.FC = () => {
           <button
             type="button"
             onClick={() => handleNav(PageRoute.DASHBOARD)}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-lg bg-[#0F2942] text-white hover:bg-[#163a5c] dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-[#0F2942] text-white hover:bg-[#163a5c] dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md whitespace-nowrap shrink-0 cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" />
             <span>{user ? 'Student Portal' : 'Student Login'}</span>
@@ -122,7 +122,7 @@ export const Navbar: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
-            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer"
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -132,7 +132,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 space-y-1 shadow-lg">
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 py-3 space-y-1 shadow-lg animate-fadeIn">
           {NAV_ITEMS.map((item) => {
             const active = route === item.route;
             return (
