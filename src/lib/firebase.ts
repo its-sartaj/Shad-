@@ -1,9 +1,11 @@
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
+  getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
   User,
 } from 'firebase/auth';
 import { doc, getDocFromServer, getFirestore } from 'firebase/firestore';
@@ -95,6 +97,17 @@ export async function testFirestoreConnection(): Promise<boolean> {
 export function initAuth(
   onAuthUserChanged: (user: User | null, accessToken: string | null) => void
 ) {
+  // Check if user is returning from a redirect sign-in flow
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result?.user) {
+        onAuthUserChanged(result.user, null);
+      }
+    })
+    .catch((err) => {
+      console.warn('Firebase redirect sign-in inspection:', err);
+    });
+
   return onAuthStateChanged(auth, (user) => {
     if (!user) {
       cachedAccessToken = null;
@@ -121,6 +134,11 @@ export async function googleSignIn(includeFormsScopes = false): Promise<{
   } finally {
     isSigningIn = false;
   }
+}
+
+export async function googleSignInRedirect(includeFormsScopes = false): Promise<void> {
+  const provider = includeFormsScopes ? workspaceFormsProvider : googleProvider;
+  await signInWithRedirect(auth, provider);
 }
 
 export async function getAccessToken(): Promise<string | null> {

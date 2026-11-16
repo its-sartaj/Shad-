@@ -13,10 +13,11 @@ import { useApp } from '../context/AppContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { downloadCertificatePng } from '../lib/certificateGenerator';
 import { ExamCountdownTimer, formatExamClock } from '../components/ExamCountdownTimer';
-import { MockTest, PageRoute, TestAttempt } from '../types';
+import { Certificate, MockTest, PageRoute, TestAttempt } from '../types';
 
 export const TestSeriesPage: React.FC = () => {
-  const { tests, user, testAttempts, certificates, setRoute, showToast } = useApp();
+  const { tests, user, testAttempts, certificates, addLocalTestAttempt, setRoute, showToast } =
+    useApp();
 
   const [subjectFilter, setSubjectFilter] = useState<string>('All');
   const [activeTest, setActiveTest] = useState<MockTest | null>(null);
@@ -84,42 +85,56 @@ export const TestSeriesPage: React.FC = () => {
     setSubmittedAttempt(attempt);
 
     if (user && user.emailVerified) {
-      try {
-        await setDoc(doc(db, 'test_attempts', attemptId), {
-          ...attempt,
-          createdAt: serverTimestamp(),
-        });
+      let unlockedCert: Certificate | undefined;
+      if (passed && activeTest.isCertificationTest) {
+        const alreadyEarned = certificates.some((c) => c.courseTitle === activeTest.title);
+        if (!alreadyEarned) {
+          const certId = `cert_${attemptId}`;
+          const code = `SCC-${new Date().getFullYear()}-${attemptId.slice(-6).toUpperCase()}`;
+          unlockedCert = {
+            id: certId,
+            userId: user.uid,
+            studentName: (user.displayName || 'Student').slice(0, 100),
+            courseId: activeTest.courseId || 'course_12th_target_batch',
+            courseTitle: activeTest.title,
+            scorePercentage: percentage,
+            verificationCode: code,
+            issuedAt: new Date().toISOString(),
+          };
+        }
+      }
 
-        if (passed && activeTest.isCertificationTest) {
-          const alreadyEarned = certificates.some((c) => c.courseTitle === activeTest.title);
-          if (!alreadyEarned) {
-            const certId = `cert_${attemptId}`;
-            const code = `SCC-${new Date().getFullYear()}-${attemptId.slice(-6).toUpperCase()}`;
-            await setDoc(doc(db, 'certificates', certId), {
-              id: certId,
-              userId: user.uid,
-              studentName: (user.displayName || 'Student').slice(0, 100),
-              courseId: activeTest.courseId || 'course_12th_target_batch',
-              courseTitle: activeTest.title,
-              scorePercentage: percentage,
-              verificationCode: code,
+      addLocalTestAttempt(attempt, unlockedCert);
+
+      if (!user.isLocal) {
+        try {
+          await setDoc(doc(db, 'test_attempts', attemptId), {
+            ...attempt,
+            createdAt: serverTimestamp(),
+          });
+          if (unlockedCert) {
+            await setDoc(doc(db, 'certificates', unlockedCert.id), {
+              ...unlockedCert,
               issuedAt: serverTimestamp(),
             });
           }
-          showToast(
-            autoTimeout
-              ? 'Time up! Test auto-submitted & merit certificate unlocked.'
-              : 'Test submitted! Score synced & certificate unlocked.',
-            'success'
-          );
-        } else {
-          showToast('Test submitted and synced to your Student Portal.', 'success');
+        } catch (cloudErr) {
+          console.warn('Could not sync attempt to Firestore cloud:', cloudErr);
         }
-      } catch (err) {
-        handleFirestoreError(err, OperationType.CREATE, `test_attempts/${attemptId}`);
+      }
+
+      if (unlockedCert) {
+        showToast(
+          autoTimeout
+            ? 'Time up! Test auto-submitted & merit certificate unlocked.'
+            : 'Test submitted! Score synced & certificate unlocked.',
+          'success'
+        );
+      } else {
+        showToast('Test submitted and synced to your Student Portal.', 'success');
       }
     } else {
-      showToast('Test graded! Sign in with Google to save scores & earn certificates.', 'info');
+      showToast('Test graded! Sign in to the Student Portal to save scores & earn certificates.', 'info');
     }
   };
 

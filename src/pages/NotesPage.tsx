@@ -49,6 +49,8 @@ export const NotesPage: React.FC = () => {
     user,
     userProfile,
     isOnline,
+    toggleNoteBookmark,
+    toggleNoteCompleted,
     showToast,
   } = useApp();
 
@@ -180,30 +182,14 @@ export const NotesPage: React.FC = () => {
   };
 
   const toggleProfileList = async (field: 'bookmarkedNoteIds' | 'completedNoteIds', noteId: string) => {
-    if (!user || !user.emailVerified || !userProfile) {
-      showToast('Sign in to sync bookmarks & completed chapters across devices.', 'info');
+    if (!user || !userProfile) {
+      showToast('Sign in to sync bookmarks & completed chapters.', 'info');
       return;
     }
-    const current = userProfile[field] || [];
-    const exists = current.includes(noteId);
-    const updated = exists ? current.filter((id) => id !== noteId) : [noteId, ...current].slice(0, 50);
-    try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        [field]: updated,
-        updatedAt: serverTimestamp(),
-      });
-      showToast(
-        field === 'bookmarkedNoteIds'
-          ? exists
-            ? 'Bookmark removed'
-            : 'Bookmarked to cloud'
-          : exists
-            ? 'Marked incomplete'
-            : 'Chapter marked completed',
-        'success'
-      );
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    if (field === 'bookmarkedNoteIds') {
+      await toggleNoteBookmark(noteId);
+    } else {
+      await toggleNoteCompleted(noteId);
     }
   };
 

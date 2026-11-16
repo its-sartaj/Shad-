@@ -202,3 +202,13 @@ export interface StudentPrivateInfo {
   rollNumber?: string;
   updatedAt?: unknown;
 }
+
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  emailVerified: boolean;
+  photoURL?: string | null;
+  isLocal?: boolean;
+  role?: 'student' | 'admin';
+}

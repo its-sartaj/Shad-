@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { CheckCircle2, CreditCard, Landmark, Smartphone, X } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db } from '../lib/firebase';
+import { Enrollment, PaymentRecord } from '../types';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
 export const PaymentModal: React.FC = () => {
@@ -11,6 +12,7 @@ export const PaymentModal: React.FC = () => {
     setActivePaymentCourse,
     user,
     signIn,
+    addLocalEnrollment,
     showToast,
     setRoute,
   } = useApp();
@@ -90,39 +92,55 @@ export const PaymentModal: React.FC = () => {
       const enrollmentId = `enr_${user.uid.slice(0, 12)}_${activePaymentCourse.id}`;
       const studentName = (user.displayName || 'Student').slice(0, 100);
 
-      try {
-        await setDoc(doc(db, 'payments', paymentId), {
-          id: paymentId,
-          userId: user.uid,
-          studentName,
-          courseId: activePaymentCourse.id,
-          courseTitle: activePaymentCourse.title,
-          amount: activePaymentCourse.feeAmount,
-          method,
-          transactionRef,
-          status: 'paid',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      } catch (err) {
-        handleFirestoreError(err, OperationType.CREATE, `payments/${paymentId}`);
-      }
+      const paymentRecord: PaymentRecord = {
+        id: paymentId,
+        userId: user.uid,
+        studentName,
+        courseId: activePaymentCourse.id,
+        courseTitle: activePaymentCourse.title,
+        amount: activePaymentCourse.feeAmount,
+        method,
+        transactionRef,
+        status: 'paid',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-      try {
-        await setDoc(doc(db, 'enrollments', enrollmentId), {
-          id: enrollmentId,
-          userId: user.uid,
-          studentName,
-          courseId: activePaymentCourse.id,
-          courseTitle: activePaymentCourse.title,
-          status: 'active',
-          feePaid: true,
-          paymentId,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      } catch (err) {
-        handleFirestoreError(err, OperationType.CREATE, `enrollments/${enrollmentId}`);
+      const enrollmentRecord: Enrollment = {
+        id: enrollmentId,
+        userId: user.uid,
+        studentName,
+        courseId: activePaymentCourse.id,
+        courseTitle: activePaymentCourse.title,
+        status: 'active',
+        feePaid: true,
+        paymentId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      addLocalEnrollment(enrollmentRecord, paymentRecord);
+
+      if (!user.isLocal) {
+        try {
+          await setDoc(doc(db, 'payments', paymentId), {
+            ...paymentRecord,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          console.warn('Could not sync payment to cloud, saved locally:', err);
+        }
+
+        try {
+          await setDoc(doc(db, 'enrollments', enrollmentId), {
+            ...enrollmentRecord,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          console.warn('Could not sync enrollment to cloud, saved locally:', err);
+        }
       }
 
       setReceipt({
