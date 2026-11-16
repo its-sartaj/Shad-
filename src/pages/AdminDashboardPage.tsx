@@ -29,7 +29,6 @@ import {
   fetchGoogleFormResponses,
   GoogleFormResponseItem,
 } from '../lib/googleForms';
-import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { Course, MockTest, NotificationAlert, PageRoute, StudyNote, TestQuestion } from '../types';
 
 type AdminTab = 'courses' | 'notes' | 'tests' | 'analytics' | 'alerts';
@@ -537,88 +536,65 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (!user || !isAdmin) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 space-y-6">
-        {authDomainError && (
-          <div className="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 text-left space-y-1 text-xs text-amber-900 dark:text-amber-200">
-            <p className="font-bold text-sm">
-              Firebase Domain Whitelist Pending ({typeof window !== 'undefined' ? window.location.hostname : 'github.io'})
-            </p>
-            <p>
-              To enable Google OAuth Popup on GitHub Pages, add <code className="px-1.5 py-0.5 rounded bg-amber-200/80 dark:bg-amber-900/80 font-mono text-amber-950 dark:text-amber-100">{typeof window !== 'undefined' ? window.location.hostname : 'its-sartaj.github.io'}</code> to Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains.
-            </p>
-            <p className="font-semibold text-emerald-800 dark:text-emerald-300 pt-1">
-              ✓ You can also log in directly using the Director Passcode below!
+      <div className="max-w-md mx-auto px-4 sm:px-6 py-20">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 mx-auto rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Faculty &amp; Admin Portal
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Shad Concept Classes · Dedicated control panel for teachers and management.
             </p>
           </div>
-        )}
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-10 text-center space-y-5">
-          <Lock className="w-10 h-10 mx-auto text-[#0F2942] dark:text-amber-400" />
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Admin &amp; Teacher Control Center
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-            Authorized portal for Er. M.N. Alam &amp; coaching faculty to upload PDF notes, publish mock tests, create Google Forms quizzes, track student analytics, and broadcast notifications.
-          </p>
-          {user && !isAdmin && (
-            <p className="text-xs font-semibold text-red-600 dark:text-red-400">
-              Signed in as {user.email}, which does not have administrator permissions.
-            </p>
-          )}
+          <form onSubmit={handleDirectorLogin} className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Admin Username
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Shad Concept class"
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
 
-          <div className="pt-2 flex flex-col items-center gap-3">
-            <GoogleSignInButton
-              onClick={() => signIn(true)}
-              label="Sign in with Admin Google Account"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                required
+                placeholder="Enter password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 px-4 rounded-lg bg-[#0F2942] hover:bg-[#1a3d5f] dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-slate-950 font-bold text-sm shadow cursor-pointer transition-all mt-2"
+            >
+              Sign In to Admin Panel
+            </button>
+          </form>
+
+          <div className="pt-2 text-center">
             <button
               type="button"
-              onClick={() => signInWithRedirectFlow(true)}
+              onClick={() => setRoute(PageRoute.HOME)}
               className="text-xs text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 underline cursor-pointer"
             >
-              Popup blocked? Use direct redirect sign-in
+              &larr; Back to Student Website
             </button>
-          </div>
-
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-6 max-w-sm mx-auto text-left space-y-3">
-            <div className="flex items-center gap-1.5">
-              <Lock className="w-4 h-4 text-amber-500" />
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                Admin Panel Login
-              </p>
-            </div>
-            <form onSubmit={handleDirectorLogin} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  placeholder="Shad Concept class"
-                  value={adminUsername}
-                  onChange={(e) => setAdminUsername(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Enter Password (Shad)"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-sm cursor-pointer transition-all"
-              >
-                Access Admin Dashboard Instantly
-              </button>
-            </form>
           </div>
         </div>
       </div>

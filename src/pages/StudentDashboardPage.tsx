@@ -8,8 +8,7 @@ import {
   CheckCircle2,
   CreditCard,
   Download,
-  Key,
-  Lock,
+  GraduationCap,
   LogOut,
   RefreshCw,
   ShieldCheck,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
-import { BOOTSTRAPPED_ADMIN_EMAIL, db } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { downloadCertificatePng } from '../lib/certificateGenerator';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { PageRoute, StudentPrivateInfo, StudentPublicProfile } from '../types';
@@ -26,9 +25,7 @@ import { PageRoute, StudentPrivateInfo, StudentPublicProfile } from '../types';
 export const StudentDashboardPage: React.FC = () => {
   const {
     user,
-    isAdmin,
     authDomainError,
-    clearAuthDomainError,
     userProfile,
     userPrivateInfo,
     enrollments,
@@ -59,17 +56,11 @@ export const StudentDashboardPage: React.FC = () => {
   const [rollNumber, setRollNumber] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Instant Student Sign-in Form State
+  // Instant Student Sign-in Form State (Guest / Local session)
   const [guestName, setGuestName] = useState('');
   const [guestClass, setGuestClass] = useState<'11th' | '12th'>('12th');
   const [guestBoard, setGuestBoard] = useState<'BSEB' | 'CBSE'>('BSEB');
   const [guestRoll, setGuestRoll] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
-
-  // Admin Direct Access State
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminUsername, setAdminUsername] = useState('Shad Concept class');
-  const [adminPasscode, setAdminPasscode] = useState('');
 
   useEffect(() => {
     if (userProfile) {
@@ -160,86 +151,92 @@ export const StudentDashboardPage: React.FC = () => {
     });
   };
 
-  const handleAdminDirectLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const u = adminUsername.trim();
-    const cleanPass = adminPasscode.trim();
-    const isUserValid =
-      u.toLowerCase() === 'shad concept class' ||
-      u.toLowerCase() === 'shad' ||
-      u.toLowerCase() === 'admin' ||
-      u.toLowerCase() === 'er. m.n. alam';
-    const isPassValid =
-      cleanPass === 'Shad' ||
-      cleanPass.toLowerCase() === 'shad' ||
-      cleanPass === 'alam@2026' ||
-      cleanPass === 'scc@admin' ||
-      cleanPass === '845436';
-
-    if (isUserValid && isPassValid) {
-      signInLocally({
-        name: u || 'Shad Concept class',
-        className: '12th',
-        board: 'BSEB',
-        email: BOOTSTRAPPED_ADMIN_EMAIL,
-        role: 'admin',
-      });
-      setRoute(PageRoute.ADMIN);
-      showToast('Admin login successful! Welcome Shad Concept class.', 'success');
-    } else {
-      showToast('Invalid credentials. Username: "Shad Concept class" & Password: "Shad"', 'error');
-    }
-  };
-
   if (!user) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8">
         {/* Welcome Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex p-3 rounded-2xl bg-amber-100 dark:bg-amber-950/50 text-[#0F2942] dark:text-amber-400">
-            <UserCheck className="w-8 h-8" />
+            <GraduationCap className="w-8 h-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
             Student Portal &amp; Cloud Sync
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-            Access your enrolled batches, take online CBT mock tests, view fee receipts, and earn verified certificates.
+            Sign up or log in to view your enrolled batches, attempt CBT mock tests, track scores, and download verified certificates.
           </p>
         </div>
 
-        {/* Domain Whitelist Advisory Banner */}
+        {/* Domain Whitelist Notice if Google popup blocked by domain */}
         {authDomainError && (
           <div className="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 sm:p-5 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1.5 text-xs text-amber-900 dark:text-amber-200">
+            <div className="space-y-1 text-xs text-amber-900 dark:text-amber-200">
               <p className="font-bold text-sm">
-                Firebase Domain Whitelist Pending ({typeof window !== 'undefined' ? window.location.hostname : 'github.io'})
+                Google Domain Authorization Pending
               </p>
               <p>
-                To enable Google OAuth Popup on GitHub Pages, add <code className="px-1.5 py-0.5 rounded bg-amber-200/80 dark:bg-amber-900/80 font-mono text-amber-950 dark:text-amber-100">{typeof window !== 'undefined' ? window.location.hostname : 'its-sartaj.github.io'}</code> under <strong>Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</strong>.
+                To enable Google sign-in on this domain, add <code className="px-1.5 py-0.5 rounded bg-amber-200/80 dark:bg-amber-900/80 font-mono text-amber-950 dark:text-amber-100">{typeof window !== 'undefined' ? window.location.hostname : 'its-sartaj.github.io'}</code> to Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains.
               </p>
               <p className="font-semibold text-emerald-800 dark:text-emerald-300 pt-1">
-                ✓ No worries! You can enter right now using <strong>Instant Student Login</strong> below without waiting.
+                ✓ Meanwhile, you can enter right now using Instant Student Access below.
               </p>
             </div>
           </div>
         )}
 
-        {/* Sign In Options Grid */}
+        {/* Dedicated Student Authentication Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* Card 1: Instant Student Login */}
+          {/* Card 1: Official Google Sign-up / Sign-in */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300">
+                  Recommended
+                </div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Sign in with Google
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  One-click sign up with your Google account. Automatically syncs test attempts, bookmarks, and fee receipts across all your mobile phones and computers.
+                </p>
+              </div>
+
+              <div className="pt-3 flex flex-col items-center gap-3.5">
+                <GoogleSignInButton
+                  onClick={() => signIn(false)}
+                  label="Sign in / Sign up with Google"
+                />
+                <button
+                  type="button"
+                  onClick={() => signInWithRedirectFlow(false)}
+                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 underline cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Popup blocked? Use direct redirect login</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Safe &amp; encrypted Google Cloud authentication</span>
+            </div>
+          </div>
+
+          {/* Card 2: Instant Student Access (Guest / Offline Mode) */}
           <div className="rounded-2xl border border-amber-300/80 dark:border-amber-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
-              Instant Access
+              Quick Entry
             </div>
             <div className="space-y-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Instant Student Login</span>
+                  <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <span>Instant Student Access</span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Quick entry for Phenhara campus students. No Google account required.
+                  Enter your name to start right away without a Google account.
                 </p>
               </div>
 
@@ -310,84 +307,6 @@ export const StudentDashboardPage: React.FC = () => {
               </form>
             </div>
           </div>
-
-          {/* Card 2: Google Sign-In & Teacher Direct */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Google Account Sign-In
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Cloud synchronization across all your mobile phones and computers.
-                </p>
-              </div>
-
-              <div className="pt-2 flex flex-col items-center gap-3">
-                <GoogleSignInButton onClick={() => signIn(false)} />
-                <button
-                  type="button"
-                  onClick={() => signInWithRedirectFlow(false)}
-                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 underline cursor-pointer inline-flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Popup blocked? Use direct redirect sign-in</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Admin Panel Access */}
-            <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Admin Panel Access</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowAdminLogin(!showAdminLogin)}
-                  className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
-                >
-                  {showAdminLogin ? 'Hide Form' : 'Admin Login'}
-                </button>
-              </div>
-
-              {showAdminLogin && (
-                <form onSubmit={handleAdminDirectLogin} className="space-y-2 pt-1">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Shad Concept class"
-                      value={adminUsername}
-                      onChange={(e) => setAdminUsername(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Enter Password (Shad)"
-                      value={adminPasscode}
-                      onChange={(e) => setAdminPasscode(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-sm cursor-pointer"
-                  >
-                    Enter Admin Dashboard
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -414,7 +333,7 @@ export const StudentDashboardPage: React.FC = () => {
             </p>
             {user.isLocal && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                Active Session
+                Active Student Session
               </span>
             )}
           </div>
@@ -422,21 +341,11 @@ export const StudentDashboardPage: React.FC = () => {
             Welcome, {userProfile?.displayName || user.displayName || 'Student'}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {user.email} · Class {className} · {board} Board
+            {user.email || 'Phenhara Campus'} · Class {className} · {board} Board
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start">
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setRoute(PageRoute.ADMIN)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-sm cursor-pointer"
-            >
-              <Lock className="w-4 h-4" />
-              <span>Admin Panel</span>
-            </button>
-          )}
           <button
             type="button"
             onClick={signOut}

@@ -48,7 +48,6 @@ export const Footer: React.FC = () => {
               { label: 'Teacher Doubt Forum', r: PageRoute.FORUM },
               { label: 'Student Portal', r: PageRoute.DASHBOARD },
               { label: 'Contact & Campus Map', r: PageRoute.CONTACT },
-              ...(isAdmin ? [{ label: 'Admin Panel', r: PageRoute.ADMIN }] : []),
             ].map((item) => (
               <li key={item.r}>
                 <button
