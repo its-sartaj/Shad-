@@ -1,0 +1,6 @@
+{
+  "name": "Shad Concept Classes",
+  "description": "Online learning, notes library, mock test series, doubt forum, fee portal, and campus locator for Shad Concept Classes (Phenhara, East Champaran — B.S.E.B. & C.B.S.E. I.Sc.).",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

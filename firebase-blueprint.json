@@ -1,0 +1,318 @@
+{
+  "entities": {
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Authorized teacher or coaching administrator record.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["admin", "teacher"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "name", "role", "createdAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Coaching batch or course offered at Shad Concept Classes.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "board": { "type": "string", "enum": ["BSEB", "CBSE", "BSEB & CBSE"] },
+        "className": { "type": "string", "enum": ["11th I.Sc.", "12th I.Sc.", "Target Crash Course", "Test Series"] },
+        "subjects": { "type": "array", "description": "Up to 8 subjects covered in this batch." },
+        "faculty": { "type": "string", "maxLength": 140 },
+        "schedule": { "type": "string", "maxLength": 140 },
+        "startDate": { "type": "string", "maxLength": 60 },
+        "feeAmount": { "type": "number" },
+        "feeLabel": { "type": "string", "maxLength": 60 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "imageUrl": { "type": "string", "maxLength": 500 },
+        "active": { "type": "boolean" },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "board", "className", "subjects", "faculty", "schedule", "startDate", "feeAmount", "feeLabel", "description", "active", "createdBy", "createdAt", "updatedAt"]
+    },
+    "StudyNote": {
+      "title": "StudyNote",
+      "description": "Downloadable PDF study note or chapter guide for offline and online reading.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "subject": { "type": "string", "enum": ["Physics", "Chemistry", "Mathematics", "Biology", "English & Hindi"] },
+        "className": { "type": "string", "enum": ["11th", "12th", "Both"] },
+        "board": { "type": "string", "enum": ["BSEB", "CBSE", "Both"] },
+        "chapter": { "type": "string", "maxLength": 120 },
+        "summary": { "type": "string", "maxLength": 4000 },
+        "pdfUrl": { "type": "string", "maxLength": 500 },
+        "fileName": { "type": "string", "maxLength": 180 },
+        "fileSizeLabel": { "type": "string", "maxLength": 40 },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "uploadedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "subject", "className", "board", "chapter", "summary", "authorName", "uploadedBy", "createdAt", "updatedAt"]
+    },
+    "MockTest": {
+      "title": "MockTest",
+      "description": "Online mock test series assessment or linked Google Form quiz.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "subject": { "type": "string", "enum": ["Physics", "Chemistry", "Mathematics", "Biology", "Full Syllabus I.Sc."] },
+        "className": { "type": "string", "enum": ["11th", "12th"] },
+        "board": { "type": "string", "enum": ["BSEB", "CBSE", "BSEB & CBSE"] },
+        "durationMinutes": { "type": "integer" },
+        "totalMarks": { "type": "integer" },
+        "passMarks": { "type": "integer" },
+        "isCertificationTest": { "type": "boolean" },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "googleFormId": { "type": "string", "maxLength": 200 },
+        "googleFormResponderUri": { "type": "string", "maxLength": 400 },
+        "questions": { "type": "array", "description": "Up to 50 MCQ question objects." },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "subject", "className", "board", "durationMinutes", "totalMarks", "passMarks", "isCertificationTest", "questions", "createdBy", "createdAt", "updatedAt"]
+    },
+    "NotificationAlert": {
+      "title": "NotificationAlert",
+      "description": "Exam schedule, assignment deadline, or batch announcement alert.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "message": { "type": "string", "minLength": 3, "maxLength": 600 },
+        "category": { "type": "string", "enum": ["exam", "deadline", "batch", "result"] },
+        "dueDate": { "type": "string", "maxLength": 60 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "message", "category", "createdBy", "createdAt"]
+    },
+    "StudentPublicProfile": {
+      "title": "StudentPublicProfile",
+      "description": "Non-PII student display profile for cloud sync and forum display.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "className": { "type": "string", "enum": ["11th", "12th"] },
+        "board": { "type": "string", "enum": ["BSEB", "CBSE"] },
+        "preferredTheme": { "type": "string", "enum": ["light", "dark"] },
+        "bookmarkedNoteIds": { "type": "array", "description": "Up to 50 bookmarked note IDs." },
+        "completedNoteIds": { "type": "array", "description": "Up to 50 completed note IDs." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "className", "board", "preferredTheme", "bookmarkedNoteIds", "completedNoteIds", "createdAt", "updatedAt"]
+    },
+    "StudentPrivateInfo": {
+      "title": "StudentPrivateInfo",
+      "description": "Isolated PII contact details strictly accessible to owner and admin.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "guardianPhone": { "type": "string", "maxLength": 30 },
+        "villageOrAddress": { "type": "string", "maxLength": 240 },
+        "rollNumber": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "updatedAt"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student batch enrollment record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentName": { "type": "string", "maxLength": 100 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseTitle": { "type": "string", "maxLength": 160 },
+        "status": { "type": "string", "enum": ["active", "completed"] },
+        "feePaid": { "type": "boolean" },
+        "paymentId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "studentName", "courseId", "courseTitle", "status", "feePaid", "createdAt", "updatedAt"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Online tuition fee payment transaction record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentName": { "type": "string", "maxLength": 100 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseTitle": { "type": "string", "maxLength": 160 },
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["UPI", "Card", "NetBanking"] },
+        "transactionRef": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["pending", "paid", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "studentName", "courseId", "courseTitle", "amount", "method", "transactionRef", "status", "createdAt", "updatedAt"]
+    },
+    "TestAttempt": {
+      "title": "TestAttempt",
+      "description": "Student mock test submission and score analytics record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentName": { "type": "string", "maxLength": 100 },
+        "testId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "testTitle": { "type": "string", "maxLength": 160 },
+        "subject": { "type": "string", "maxLength": 80 },
+        "score": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "percentage": { "type": "number" },
+        "correctCount": { "type": "integer" },
+        "wrongCount": { "type": "integer" },
+        "unansweredCount": { "type": "integer" },
+        "timeSpentSeconds": { "type": "integer" },
+        "passed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "studentName", "testId", "testTitle", "subject", "score", "totalMarks", "percentage", "correctCount", "wrongCount", "unansweredCount", "timeSpentSeconds", "passed", "createdAt"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Earned completion certificate for a batch or certification test.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentName": { "type": "string", "maxLength": 100 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseTitle": { "type": "string", "maxLength": 160 },
+        "scorePercentage": { "type": "number" },
+        "verificationCode": { "type": "string", "maxLength": 60 },
+        "issuedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "studentName", "courseId", "courseTitle", "scorePercentage", "verificationCode", "issuedAt"]
+    },
+    "ForumPost": {
+      "title": "ForumPost",
+      "description": "Student doubt clearing question thread.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "authorId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "subject": { "type": "string", "enum": ["Physics", "Chemistry", "Mathematics", "Biology", "General"] },
+        "title": { "type": "string", "minLength": 4, "maxLength": 180 },
+        "body": { "type": "string", "minLength": 4, "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["open", "resolved"] },
+        "replyCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "authorId", "authorName", "subject", "title", "body", "status", "replyCount", "createdAt", "updatedAt"]
+    },
+    "ForumReply": {
+      "title": "ForumReply",
+      "description": "Reply to a student doubt thread.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "postId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "authorId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "isTeacher": { "type": "boolean" },
+        "body": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "postId", "authorId", "authorName", "isTeacher", "body", "createdAt"]
+    },
+    "ContactInquiry": {
+      "title": "ContactInquiry",
+      "description": "Admission or parent inquiry submitted via Contact Us form.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "phone": { "type": "string", "minLength": 6, "maxLength": 25 },
+        "className": { "type": "string", "maxLength": 60 },
+        "message": { "type": "string", "minLength": 3, "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["new", "contacted", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "name", "phone", "className", "message", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Authorized faculty/admin records."
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Coaching batches and courses."
+    },
+    "/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/StudyNote" },
+      "description": "Subject-wise study notes and PDF metadata."
+    },
+    "/tests/{testId}": {
+      "schema": { "$ref": "#/entities/MockTest" },
+      "description": "Online mock tests and Google Forms assessments."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationAlert" },
+      "description": "Broadcast notifications for exams, deadlines, and batches."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/StudentPublicProfile" },
+      "description": "Student non-PII cloud-synced profile and study preferences."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/StudentPrivateInfo" },
+      "description": "Student PII contact records isolated from public profiles."
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/Enrollment" },
+      "description": "Student batch enrollments."
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentRecord" },
+      "description": "Fee payment records."
+    },
+    "/test_attempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/TestAttempt" },
+      "description": "Completed mock test results for student and teacher analytics."
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "#/entities/Certificate" },
+      "description": "Issued completion certificates."
+    },
+    "/forum_posts/{postId}": {
+      "schema": { "$ref": "#/entities/ForumPost" },
+      "description": "Student doubt forum threads."
+    },
+    "/forum_posts/{postId}/replies/{replyId}": {
+      "schema": { "$ref": "#/entities/ForumReply" },
+      "description": "Replies under a doubt forum thread."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/ContactInquiry" },
+      "description": "Contact Us and admission inquiries."
+    }
+  }
+}
