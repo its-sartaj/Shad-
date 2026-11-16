@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  AlertTriangle,
   ArrowRight,
   Award,
   Bell,
@@ -25,7 +24,6 @@ import { PageRoute, StudentPrivateInfo, StudentPublicProfile } from '../types';
 export const StudentDashboardPage: React.FC = () => {
   const {
     user,
-    authDomainError,
     userProfile,
     userPrivateInfo,
     enrollments,
@@ -155,35 +153,14 @@ export const StudentDashboardPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8">
         {/* Welcome Header */}
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-2">
           <div className="inline-flex p-3 rounded-2xl bg-amber-100 dark:bg-amber-950/50 text-[#0F2942] dark:text-amber-400">
             <GraduationCap className="w-8 h-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-            Student Portal &amp; Cloud Sync
+            Student Portal
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-            Sign up or log in to view your enrolled batches, attempt CBT mock tests, track scores, and download verified certificates.
-          </p>
         </div>
-
-        {/* Domain Whitelist Notice if Google popup blocked by domain */}
-        {authDomainError && (
-          <div className="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 sm:p-5 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs text-amber-900 dark:text-amber-200">
-              <p className="font-bold text-sm">
-                Google Domain Authorization Pending
-              </p>
-              <p>
-                To enable Google sign-in on this domain, add <code className="px-1.5 py-0.5 rounded bg-amber-200/80 dark:bg-amber-900/80 font-mono text-amber-950 dark:text-amber-100">{typeof window !== 'undefined' ? window.location.hostname : 'its-sartaj.github.io'}</code> to Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains.
-              </p>
-              <p className="font-semibold text-emerald-800 dark:text-emerald-300 pt-1">
-                ✓ Meanwhile, you can enter right now using Instant Student Access below.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Dedicated Student Authentication Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
