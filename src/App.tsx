@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { WhatsAppFloatingButton } from './components/WhatsAppFloatingButton';
 import { PaymentModal } from './components/PaymentModal';
+import { GoogleAuthModal } from './components/GoogleAuthModal';
 import { HomePage } from './pages/HomePage';
 import { NotesPage } from './pages/NotesPage';
 import { TestSeriesPage } from './pages/TestSeriesPage';
@@ -74,6 +75,7 @@ const AppShell: React.FC = () => {
       <Footer />
       <WhatsAppFloatingButton />
       <PaymentModal />
+      <GoogleAuthModal />
 
       {toast && (
         <div

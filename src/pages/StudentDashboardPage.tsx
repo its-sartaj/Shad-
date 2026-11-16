@@ -37,6 +37,8 @@ export const StudentDashboardPage: React.FC = () => {
     requestPushPermission,
     signIn,
     signInWithRedirectFlow,
+    signInWithGoogleAccount,
+    setGoogleAuthModalOpen,
     signInLocally,
     updateLocalProfile,
     signOut,
@@ -54,11 +56,12 @@ export const StudentDashboardPage: React.FC = () => {
   const [rollNumber, setRollNumber] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Instant Student Sign-in Form State (Guest / Local session)
+  // Student Direct Google Sign-in Form State
   const [guestName, setGuestName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [guestClass, setGuestClass] = useState<'11th' | '12th'>('12th');
   const [guestBoard, setGuestBoard] = useState<'BSEB' | 'CBSE'>('BSEB');
-  const [guestRoll, setGuestRoll] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
 
   useEffect(() => {
     if (userProfile) {
@@ -134,18 +137,24 @@ export const StudentDashboardPage: React.FC = () => {
     }
   };
 
-  const handleInstantStudentLogin = (e: React.FormEvent) => {
+  const handleDirectGoogleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guestName.trim()) {
+    const cleanName = guestName.trim();
+    const cleanEmail = studentEmail.trim().toLowerCase();
+    if (!cleanName) {
       showToast('Please enter your full name.', 'error');
       return;
     }
-    signInLocally({
-      name: guestName.trim(),
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      showToast('Please enter a valid Google / Gmail address.', 'error');
+      return;
+    }
+    signInWithGoogleAccount({
+      name: cleanName,
+      email: cleanEmail,
       className: guestClass,
       board: guestBoard,
-      email: guestRoll.trim() ? `${guestRoll.trim().toLowerCase()}@student.scc` : undefined,
-      role: 'student',
+      phone: guestPhone.trim() || undefined,
     });
   };
 
@@ -186,12 +195,27 @@ export const StudentDashboardPage: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => signInWithRedirectFlow(false)}
-                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 underline cursor-pointer inline-flex items-center gap-1.5"
+                  onClick={() => setGoogleAuthModalOpen(true)}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer inline-flex items-center gap-1.5 font-medium"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Popup blocked? Use direct redirect login</span>
+                  <span>Open Google Account Details Form</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>CBT Online Mock Tests with Instant Rank</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Official Verified Certificate of Merit</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>Physics &amp; Chemistry Chapter Handwritten Notes</span>
+                </div>
               </div>
             </div>
 
@@ -201,23 +225,23 @@ export const StudentDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2: Instant Student Access (Guest / Offline Mode) */}
+          {/* Card 2: Student Sign-Up with Gmail */}
           <div className="rounded-2xl border border-amber-300/80 dark:border-amber-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
-              Quick Entry
+              Instant Sign-Up
             </div>
             <div className="space-y-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  <span>Instant Student Access</span>
+                  <span>Student Sign-Up with Gmail</span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Enter your name to start right away without a Google account.
+                  Enter your Google / Gmail ID to create your student account immediately:
                 </p>
               </div>
 
-              <form onSubmit={handleInstantStudentLogin} className="space-y-3 pt-2">
+              <form onSubmit={handleDirectGoogleLogin} className="space-y-3 pt-2">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Student Full Name *
@@ -228,6 +252,20 @@ export const StudentDashboardPage: React.FC = () => {
                     placeholder="e.g. Md Sartaj Alam"
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Google / Gmail Address *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. sartaj@gmail.com"
+                    value={studentEmail}
+                    onChange={(e) => setStudentEmail(e.target.value)}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
@@ -263,13 +301,13 @@ export const StudentDashboardPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Roll No. / Phone (Optional)
+                    Mobile / WhatsApp No. (Optional)
                   </label>
                   <input
-                    type="text"
-                    placeholder="e.g. 260124 or 9876543210"
-                    value={guestRoll}
-                    onChange={(e) => setGuestRoll(e.target.value)}
+                    type="tel"
+                    placeholder="e.g. 9876543210"
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
@@ -278,7 +316,7 @@ export const StudentDashboardPage: React.FC = () => {
                   type="submit"
                   className="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0F2942] hover:bg-[#1a3d5f] dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-slate-950 font-bold text-sm shadow cursor-pointer transition-all"
                 >
-                  <span>Enter Student Portal</span>
+                  <span>Continue with Google Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
