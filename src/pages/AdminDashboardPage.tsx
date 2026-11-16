@@ -4,6 +4,8 @@ import {
   BarChart3,
   BellPlus,
   BookPlus,
+  CheckCircle2,
+  Clock,
   Database,
   Download,
   FilePlus2,
@@ -33,6 +35,28 @@ import { Course, MockTest, NotificationAlert, PageRoute, StudyNote, TestQuestion
 
 type AdminTab = 'courses' | 'notes' | 'tests' | 'analytics' | 'alerts';
 
+function formatInquiryDate(createdAt: unknown): string {
+  if (!createdAt) return 'Recent';
+  try {
+    if (typeof createdAt === 'string' || typeof createdAt === 'number') {
+      return new Date(createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    if (
+      typeof createdAt === 'object' &&
+      createdAt !== null &&
+      'toDate' in createdAt &&
+      typeof (createdAt as { toDate: () => Date }).toDate === 'function'
+    ) {
+      return (createdAt as { toDate: () => Date }).toDate().toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  } catch {}
+  return 'Recent';
+}
+
 export const AdminDashboardPage: React.FC = () => {
   const {
     user,
@@ -52,6 +76,7 @@ export const AdminDashboardPage: React.FC = () => {
     setNotifications,
     allAttemptsForAdmin,
     allInquiriesForAdmin,
+    setAllInquiriesForAdmin,
     allEnrollmentsForAdmin,
     setRoute,
     signOut,
@@ -145,6 +170,11 @@ export const AdminDashboardPage: React.FC = () => {
   const handleSeedCloud = async () => {
     if (!user || !isAdmin) return;
     setSeeding(true);
+    // Instant optimistic update in memory & local storage
+    setCourses(INITIAL_COURSES);
+    setNotes(INITIAL_NOTES);
+    setTests(INITIAL_TESTS);
+    setNotifications(INITIAL_NOTIFICATIONS);
     try {
       for (const c of INITIAL_COURSES) {
         await setDoc(doc(db, 'courses', c.id), {
@@ -177,10 +207,10 @@ export const AdminDashboardPage: React.FC = () => {
           createdAt: serverTimestamp(),
         });
       }
-      showToast('Initial batches, notes, tests, and alerts synced to Firestore!', 'success');
+      showToast('Initial batches, notes, tests, and alerts synced to website & Firestore!', 'success');
     } catch (err) {
       console.warn('Could not sync seed catalog to Firestore:', err);
-      showToast('Catalog initialized in app memory.', 'info');
+      showToast('Catalog initialized across website & local storage.', 'info');
     } finally {
       setSeeding(false);
     }
@@ -207,42 +237,49 @@ export const AdminDashboardPage: React.FC = () => {
       active: true,
       createdBy: user.uid,
     };
+
+    // 1. Instant 0ms optimistic update across entire website
+    setCourses((prev) => [newCourse, ...prev]);
+    setCTitle('');
+    setCDesc('');
+    showToast('Batch published to website & student portal in real-time!', 'success');
+
+    // 2. Cloud persistence
     try {
       await setDoc(doc(db, 'courses', id), {
         ...newCourse,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      setCTitle('');
-      setCDesc('');
-      showToast('Batch published to website & student portal!', 'success');
     } catch (err) {
-      console.warn('Could not sync course to cloud:', err);
-      setCourses((prev) => [newCourse, ...prev]);
-      setCTitle('');
-      setCDesc('');
-      showToast('Batch published locally (cloud sync offline).', 'success');
+      console.warn('Could not sync course to cloud (stored locally):', err);
     }
   };
 
   const handleDeleteCourse = async (courseId: string) => {
+    // 1. Instant 0ms optimistic removal across entire website
+    setCourses((prev) => prev.filter((c) => c.id !== courseId));
+    showToast('Batch deleted.', 'info');
+
+    // 2. Cloud persistence
     try {
       await deleteDoc(doc(db, 'courses', courseId));
     } catch (err) {
       console.warn('Could not delete course from cloud:', err);
     }
-    setCourses((prev) => prev.filter((c) => c.id !== courseId));
-    showToast('Batch deleted.', 'info');
   };
 
   const handleDeleteTest = async (testId: string) => {
+    // 1. Instant 0ms optimistic removal across entire website
+    setTests((prev) => prev.filter((t) => t.id !== testId));
+    showToast('Test deleted.', 'info');
+
+    // 2. Cloud persistence
     try {
       await deleteDoc(doc(db, 'tests', testId));
     } catch (err) {
       console.warn('Could not delete test from cloud:', err);
     }
-    setTests((prev) => prev.filter((t) => t.id !== testId));
-    showToast('Test deleted.', 'info');
   };
 
   const handlePdfFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -315,40 +352,40 @@ export const AdminDashboardPage: React.FC = () => {
       authorName: (nSubject === 'Biology' ? 'Md Ejaz Alam' : 'Er. M.N. Alam').slice(0, 100),
       uploadedBy: user.uid,
     };
+
+    // 1. Instant 0ms optimistic update across entire website
+    setNotes((prev) => [newNote, ...prev]);
+    setNTitle('');
+    setNChapter('');
+    setNSummary('');
+    setNPdfUrl('');
+    setNFileName('');
+    setNFileSize('');
+    showToast('Study note & PDF published to Notes Library in real-time!', 'success');
+
+    // 2. Cloud persistence
     try {
       await setDoc(doc(db, 'notes', id), {
         ...newNote,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      setNTitle('');
-      setNChapter('');
-      setNSummary('');
-      setNPdfUrl('');
-      setNFileName('');
-      setNFileSize('');
-      showToast('Study note & PDF published to Notes Library!', 'success');
     } catch (err) {
-      console.warn('Could not sync note to cloud:', err);
-      setNotes((prev) => [newNote, ...prev]);
-      setNTitle('');
-      setNChapter('');
-      setNSummary('');
-      setNPdfUrl('');
-      setNFileName('');
-      setNFileSize('');
-      showToast('Study note published locally (cloud sync offline).', 'success');
+      console.warn('Could not sync note to cloud (stored locally):', err);
     }
   };
 
   const handleDeleteNote = async (noteId: string) => {
+    // 1. Instant 0ms optimistic removal across entire website
+    setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    showToast('Note removed.', 'info');
+
+    // 2. Cloud persistence
     try {
       await deleteDoc(doc(db, 'notes', noteId));
     } catch (err) {
       console.warn('Could not delete note from cloud:', err);
     }
-    setNotes((prev) => prev.filter((n) => n.id !== noteId));
-    showToast('Note removed.', 'info');
   };
 
   const handleCreateTest = async (e: React.FormEvent, alsoCreateGoogleForm = false) => {
@@ -405,39 +442,30 @@ export const AdminDashboardPage: React.FC = () => {
       questions: validQs,
       createdBy: user.uid,
     };
+    // 1. Instant 0ms optimistic update across entire website
+    setTests((prev) => [newTest, ...prev]);
+    setTTitle('');
+    setTQuestions([
+      {
+        id: 'q1',
+        question: '',
+        options: ['', '', '', ''],
+        correctIndex: 0,
+        marks: 4,
+        explanation: '',
+      },
+    ]);
+    showToast('New online test published to Test Series in real-time!', 'success');
+
+    // 2. Cloud persistence
     try {
       await setDoc(doc(db, 'tests', id), {
         ...newTest,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      setTTitle('');
-      setTQuestions([
-        {
-          id: 'q1',
-          question: '',
-          options: ['', '', '', ''],
-          correctIndex: 0,
-          marks: 4,
-          explanation: '',
-        },
-      ]);
-      showToast('New online test published to Test Series!', 'success');
     } catch (err) {
-      console.warn('Could not sync test to cloud:', err);
-      setTests((prev) => [newTest, ...prev]);
-      setTTitle('');
-      setTQuestions([
-        {
-          id: 'q1',
-          question: '',
-          options: ['', '', '', ''],
-          correctIndex: 0,
-          marks: 4,
-          explanation: '',
-        },
-      ]);
-      showToast('Test published locally (cloud sync offline).', 'success');
+      console.warn('Could not sync test to cloud (stored locally):', err);
     }
   };
 
@@ -472,35 +500,87 @@ export const AdminDashboardPage: React.FC = () => {
       dueDate: aDueDate.trim().slice(0, 60),
       createdBy: user.uid,
     };
+
+    // 1. Instant 0ms optimistic update across entire website
+    setNotifications((prev) => [newAlert, ...prev]);
+    setATitle('');
+    setAMessage('');
+    setADueDate('');
+    showToast('Push alert broadcasted across website in real-time!', 'success');
+
+    // 2. Cloud persistence
     try {
       await setDoc(doc(db, 'notifications', id), {
         ...newAlert,
         createdAt: serverTimestamp(),
       });
-      setATitle('');
-      setAMessage('');
-      setADueDate('');
-      showToast('Push notification broadcasted to all students!', 'success');
     } catch (err) {
-      console.warn('Could not broadcast notification to cloud:', err);
-      setNotifications((prev) => [newAlert, ...prev]);
-      setATitle('');
-      setAMessage('');
-      setADueDate('');
-      showToast('Push alert saved locally (cloud sync offline).', 'success');
+      console.warn('Could not broadcast notification to cloud (stored locally):', err);
+    }
+  };
+
+  const handleDeleteAlert = async (id: string) => {
+    // 1. Instant 0ms optimistic removal
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    showToast('Alert removed.', 'info');
+
+    // 2. Cloud persistence
+    try {
+      await deleteDoc(doc(db, 'notifications', id));
+    } catch (err) {
+      console.warn('Could not delete alert from cloud:', err);
     }
   };
 
   const handleUpdateInquiryStatus = async (id: string, status: 'contacted' | 'resolved') => {
+    // 1. Instant 0ms optimistic update in UI state
+    setAllInquiriesForAdmin((prev) =>
+      prev.map((inq) => (inq.id === id ? { ...inq, status } : inq))
+    );
+
+    // 2. Instant persistence in local storage
+    try {
+      const local = JSON.parse(localStorage.getItem('scc_inquiries_local') || '[]');
+      const updated = local.map((i: any) => (i.id === id ? { ...i, status } : i));
+      localStorage.setItem('scc_inquiries_local', JSON.stringify(updated));
+    } catch {}
+
+    // 3. Cloud persistence
     try {
       await updateDoc(doc(db, 'inquiries', id), {
         status,
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      console.warn('Could not update inquiry in cloud:', err);
+      console.warn('Could not update inquiry in cloud (stored locally):', err);
     }
-    showToast(`Inquiry marked as ${status}.`, 'success');
+
+    showToast(
+      status === 'resolved'
+        ? 'Inquiry marked as Resolved ✓'
+        : 'Inquiry marked as Contacted.',
+      'success'
+    );
+  };
+
+  const handleDeleteInquiry = async (id: string) => {
+    // 1. Instant 0ms optimistic removal
+    setAllInquiriesForAdmin((prev) => prev.filter((i) => i.id !== id));
+    showToast('Inquiry deleted.', 'info');
+
+    // 2. Persist in local storage
+    try {
+      const local = JSON.parse(localStorage.getItem('scc_inquiries_local') || '[]');
+      const updated = local.filter((i: any) => i.id !== id);
+      localStorage.setItem('scc_inquiries_local', JSON.stringify(updated));
+    } catch {}
+
+    // 3. Cloud persistence
+    try {
+      await deleteDoc(doc(db, 'inquiries', id));
+    } catch (err) {
+      console.warn('Could not delete inquiry from cloud:', err);
+    }
   };
 
   const handleExportAnalyticsCsv = () => {
@@ -1365,12 +1445,24 @@ export const AdminDashboardPage: React.FC = () => {
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Active Alerts ({notifications.length})
               </p>
-              {notifications.slice(0, 4).map((n) => (
-                <div key={n.id} className="text-xs flex items-center justify-between gap-2">
-                  <span className="truncate font-medium text-slate-800 dark:text-slate-200">
-                    {n.title}
-                  </span>
-                  <span className="font-mono text-slate-500 shrink-0">{n.dueDate}</span>
+              {notifications.map((n) => (
+                <div key={n.id} className="text-xs flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800">
+                  <div className="truncate">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 block truncate">
+                      {n.title}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                      {n.category.toUpperCase()} {n.dueDate ? `· Due: ${n.dueDate}` : ''}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteAlert(n.id)}
+                    className="p-1 text-slate-400 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
+                    title="Delete Alert"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -1382,40 +1474,88 @@ export const AdminDashboardPage: React.FC = () => {
             </h2>
             {allInquiriesForAdmin.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                No signed-in inquiries yet.
+                No inquiries submitted yet. Inquiries submitted via Contact Us appear here in real-time.
               </p>
             ) : (
               <div className="space-y-3">
                 {allInquiriesForAdmin.map((inq) => (
                   <div
                     key={inq.id}
-                    className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 bg-white dark:bg-slate-900 shadow-xs"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">
-                        {inq.name} · <span className="font-mono">{inq.phone}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">
+                          {inq.name} · <span className="font-mono text-xs">{inq.phone}</span>
+                        </p>
+                        {inq.status === 'resolved' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                            Resolved
+                          </span>
+                        ) : inq.status === 'contacted' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
+                            <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            Contacted
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Class: {inq.className} · {formatInquiryDate(inq.createdAt)}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Class: {inq.className} · Status: {inq.status.toUpperCase()}
-                      </p>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">
+                      <p className="text-xs text-slate-700 dark:text-slate-300 mt-1.5 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
                         {inq.message}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
+                      {inq.status !== 'resolved' ? (
+                        <>
+                          {inq.status !== 'contacted' && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateInquiryStatus(inq.id, 'contacted')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer transition-colors"
+                            >
+                              <Clock className="w-3 h-3 text-blue-500" />
+                              <span>Contacted</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateInquiryStatus(inq.id, 'resolved')}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold cursor-pointer transition-all shadow-sm"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Resolve</span>
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <span>Resolved</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateInquiryStatus(inq.id, 'contacted')}
+                            className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline cursor-pointer"
+                            title="Reopen inquiry"
+                          >
+                            Reopen
+                          </button>
+                        </div>
+                      )}
                       <button
                         type="button"
-                        onClick={() => handleUpdateInquiryStatus(inq.id, 'contacted')}
-                        className="px-2.5 py-1.5 rounded border border-slate-300 dark:border-slate-700 text-xs font-semibold cursor-pointer"
+                        onClick={() => handleDeleteInquiry(inq.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        title="Delete inquiry"
                       >
-                        Contacted
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateInquiryStatus(inq.id, 'resolved')}
-                        className="px-2.5 py-1.5 rounded bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
-                      >
-                        Resolve
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

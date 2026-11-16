@@ -95,19 +95,6 @@ export const Navbar: React.FC = () => {
             className="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1"
           />
 
-          {/* Admin Panel button if admin */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => handleNav(PageRoute.ADMIN)}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all duration-200 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer shadow-sm hover:shadow-md"
-              title="Admin & Teacher Dashboard"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Admin</span>
-            </button>
-          )}
-
           {/* Primary Student Portal CTA */}
           <button
             type="button"
@@ -151,16 +138,6 @@ export const Navbar: React.FC = () => {
             );
           })}
           <div className="pt-2.5 border-t border-slate-200 dark:border-slate-800 space-y-2">
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => handleNav(PageRoute.ADMIN)}
-                className="w-full py-2.5 px-4 min-h-[44px] rounded-lg bg-amber-500 text-slate-950 text-xs font-bold text-center flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Admin Panel</span>
-              </button>
-            )}
             <button
               type="button"
               onClick={() => handleNav(PageRoute.DASHBOARD)}

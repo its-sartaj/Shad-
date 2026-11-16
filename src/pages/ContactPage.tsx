@@ -11,7 +11,7 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { CampusLocationMap } from '../components/CampusLocationMap';
 
 export const ContactPage: React.FC = () => {
-  const { user, showToast } = useApp();
+  const { user, showToast, setAllInquiriesForAdmin } = useApp();
 
   // Contact Inquiry Form
   const [name, setName] = useState(user?.displayName || '');
@@ -64,10 +64,25 @@ export const ContactPage: React.FC = () => {
         }
       }
 
-      // Local backup so inquiry is never lost
+      // Real-time local & memory persistence so inquiry appears in Admin panel immediately
+      const newInqItem = {
+        id: inquiryId,
+        userId: user ? user.uid : 'local',
+        name: name.trim().slice(0, 100),
+        phone: phone.trim().slice(0, 25),
+        className: className.slice(0, 60),
+        message: message.trim().slice(0, 1500),
+        status: 'new' as const,
+        createdAt: new Date().toISOString(),
+      };
+      setAllInquiriesForAdmin((prev) => [newInqItem, ...prev.filter((i) => i.id !== inquiryId)]);
+
       try {
         const local = JSON.parse(localStorage.getItem('scc_inquiries_local') || '[]');
-        local.unshift({ id: inquiryId, name, phone, className, message, submittedAt: new Date().toISOString() });
+        local.unshift({
+          ...newInqItem,
+          submittedAt: new Date().toISOString(),
+        });
         localStorage.setItem('scc_inquiries_local', JSON.stringify(local.slice(0, 50)));
       } catch {
         // storage quota fallback

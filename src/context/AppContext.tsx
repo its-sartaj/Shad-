@@ -100,6 +100,7 @@ interface AppContextValue {
   certificates: Certificate[];
   allAttemptsForAdmin: TestAttempt[];
   allInquiriesForAdmin: ContactInquiry[];
+  setAllInquiriesForAdmin: React.Dispatch<React.SetStateAction<ContactInquiry[]>>;
   allEnrollmentsForAdmin: Enrollment[];
   offlineNoteIds: string[];
   refreshOfflineNotes: () => Promise<void>;
@@ -135,10 +136,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [authDomainError, setAuthDomainError] = useState(false);
   const [googleAuthModalOpen, setGoogleAuthModalOpen] = useState(false);
 
-  const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
-  const [notes, setNotes] = useState<StudyNote[]>(INITIAL_NOTES);
-  const [tests, setTests] = useState<MockTest[]>(INITIAL_TESTS);
-  const [notifications, setNotifications] = useState<NotificationAlert[]>(INITIAL_NOTIFICATIONS);
+  const [courses, setCourses] = useState<Course[]>(() => {
+    try {
+      const saved = localStorage.getItem('scc_courses_store');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_COURSES;
+  });
+  const [notes, setNotes] = useState<StudyNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('scc_notes_store');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_NOTES;
+  });
+  const [tests, setTests] = useState<MockTest[]>(() => {
+    try {
+      const saved = localStorage.getItem('scc_tests_store');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_TESTS;
+  });
+  const [notifications, setNotifications] = useState<NotificationAlert[]>(() => {
+    try {
+      const saved = localStorage.getItem('scc_notifications_store');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_NOTIFICATIONS;
+  });
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
 
   const [userProfile, setUserProfile] = useState<StudentPublicProfile | null>(null);
@@ -149,7 +186,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   const [allAttemptsForAdmin, setAllAttemptsForAdmin] = useState<TestAttempt[]>([]);
-  const [allInquiriesForAdmin, setAllInquiriesForAdmin] = useState<ContactInquiry[]>([]);
+  const [allInquiriesForAdmin, setAllInquiriesForAdmin] = useState<ContactInquiry[]>(() => {
+    try {
+      const localInq = JSON.parse(localStorage.getItem('scc_inquiries_local') || '[]');
+      if (Array.isArray(localInq) && localInq.length > 0) {
+        return localInq.map((i: any) => ({
+          id: i.id || `inq_${Date.now()}`,
+          userId: i.userId || 'local',
+          name: i.name,
+          phone: i.phone,
+          className: i.className,
+          message: i.message,
+          status: i.status || 'new',
+          createdAt: i.submittedAt || i.createdAt || new Date().toISOString(),
+        }));
+      }
+    } catch {}
+    return [];
+  });
   const [allEnrollmentsForAdmin, setAllEnrollmentsForAdmin] = useState<Enrollment[]>([]);
 
   const [offlineNoteIds, setOfflineNoteIds] = useState<string[]>([]);
@@ -530,36 +584,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubCourses = onSnapshot(
       query(collection(db, 'courses'), orderBy('title', 'asc')),
       (snap) => {
-        const list = snap.docs.map((d) => ({ ...(d.data() as Course), id: d.id }));
-        setCourses(list.length > 0 ? list : INITIAL_COURSES);
+        if (snap.docs.length > 0) {
+          const list = snap.docs.map((d) => ({ ...(d.data() as Course), id: d.id }));
+          setCourses(list);
+        }
       },
       (err) => {
-        console.warn('Using offline courses seed:', err);
-        setCourses(INITIAL_COURSES);
+        console.warn('Using local/cached courses store:', err);
       }
     );
 
     const unsubNotes = onSnapshot(
       query(collection(db, 'notes'), orderBy('chapter', 'asc')),
       (snap) => {
-        const list = snap.docs.map((d) => ({ ...(d.data() as StudyNote), id: d.id }));
-        setNotes(list.length > 0 ? list : INITIAL_NOTES);
+        if (snap.docs.length > 0) {
+          const list = snap.docs.map((d) => ({ ...(d.data() as StudyNote), id: d.id }));
+          setNotes(list);
+        }
       },
       (err) => {
-        console.warn('Using offline notes seed:', err);
-        setNotes(INITIAL_NOTES);
+        console.warn('Using local/cached notes store:', err);
       }
     );
 
     const unsubTests = onSnapshot(
       query(collection(db, 'tests'), orderBy('title', 'asc')),
       (snap) => {
-        const list = snap.docs.map((d) => ({ ...(d.data() as MockTest), id: d.id }));
-        setTests(list.length > 0 ? list : INITIAL_TESTS);
+        if (snap.docs.length > 0) {
+          const list = snap.docs.map((d) => ({ ...(d.data() as MockTest), id: d.id }));
+          setTests(list);
+        }
       },
       (err) => {
-        console.warn('Using offline tests seed:', err);
-        setTests(INITIAL_TESTS);
+        console.warn('Using local/cached tests store:', err);
       }
     );
 
@@ -567,8 +624,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubNotifs = onSnapshot(
       query(collection(db, 'notifications'), orderBy('createdAt', 'desc')),
       (snap) => {
-        const list = snap.docs.map((d) => ({ ...(d.data() as NotificationAlert), id: d.id }));
-        if (list.length > 0) {
+        if (snap.docs.length > 0) {
+          const list = snap.docs.map((d) => ({ ...(d.data() as NotificationAlert), id: d.id }));
           if (knownNotifCount !== -1 && list.length > knownNotifCount && Notification?.permission === 'granted') {
             const newest = list[0];
             new Notification(`Shad Concept Classes · ${newest.title}`, {
@@ -578,14 +635,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
           knownNotifCount = list.length;
           setNotifications(list);
-        } else {
-          knownNotifCount = 0;
-          setNotifications(INITIAL_NOTIFICATIONS);
         }
       },
       (err) => {
-        console.warn('Using offline notifications seed:', err);
-        setNotifications(INITIAL_NOTIFICATIONS);
+        console.warn('Using local/cached notifications store:', err);
       }
     );
 
@@ -606,6 +659,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unsubNotifs();
       unsubForum();
     };
+  }, []);
+
+  // Auto-sync stores to localStorage for 0ms instant persistence & offline resilience
+  useEffect(() => {
+    try {
+      localStorage.setItem('scc_courses_store', JSON.stringify(courses));
+    } catch {}
+  }, [courses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('scc_notes_store', JSON.stringify(notes));
+    } catch {}
+  }, [notes]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('scc_tests_store', JSON.stringify(tests));
+    } catch {}
+  }, [tests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('scc_notifications_store', JSON.stringify(notifications));
+    } catch {}
+  }, [notifications]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('scc_inquiries_local', JSON.stringify(allInquiriesForAdmin));
+    } catch {}
+  }, [allInquiriesForAdmin]);
+
+  // Real-time multi-tab cross-window synchronization
+  useEffect(() => {
+    const handleCrossTabSync = (e: StorageEvent) => {
+      if (!e.newValue) return;
+      try {
+        if (e.key === 'scc_courses_store') {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setCourses(list);
+        } else if (e.key === 'scc_notes_store') {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setNotes(list);
+        } else if (e.key === 'scc_tests_store') {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setTests(list);
+        } else if (e.key === 'scc_notifications_store') {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setNotifications(list);
+        } else if (e.key === 'scc_inquiries_local') {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setAllInquiriesForAdmin(list);
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', handleCrossTabSync);
+    return () => window.removeEventListener('storage', handleCrossTabSync);
   }, []);
 
   // User-scoped Firestore listeners (only for Firebase cloud user)
@@ -840,6 +951,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         certificates,
         allAttemptsForAdmin,
         allInquiriesForAdmin,
+        setAllInquiriesForAdmin,
         allEnrollmentsForAdmin,
         offlineNoteIds,
         refreshOfflineNotes,
