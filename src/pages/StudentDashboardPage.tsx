@@ -9,7 +9,6 @@ import {
   Download,
   GraduationCap,
   LogOut,
-  RefreshCw,
   ShieldCheck,
   TrendingUp,
   UserCheck,
@@ -18,7 +17,6 @@ import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
 import { db } from '../lib/firebase';
 import { downloadCertificatePng } from '../lib/certificateGenerator';
-import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { PageRoute, StudentPrivateInfo, StudentPublicProfile } from '../types';
 
 export const StudentDashboardPage: React.FC = () => {
@@ -160,7 +158,7 @@ export const StudentDashboardPage: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+      <div className="max-w-xl mx-auto px-4 sm:px-6 py-12 space-y-8">
         {/* Welcome Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex p-3 rounded-2xl bg-amber-100 dark:bg-amber-950/50 text-[#0F2942] dark:text-amber-400">
@@ -169,157 +167,141 @@ export const StudentDashboardPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
             Student Portal
           </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Sign in with your Google / Gmail account to access test series, notes, and certificates.
+          </p>
         </div>
 
-        {/* Dedicated Student Authentication Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* Card 1: Official Google Sign-up / Sign-in */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300">
-                  Recommended
-                </div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Sign in with Google
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  One-click sign up with your Google account. Automatically syncs test attempts, bookmarks, and fee receipts across all your mobile phones and computers.
-                </p>
-              </div>
-
-              <div className="pt-3 flex flex-col items-center gap-3.5">
-                <GoogleSignInButton
-                  onClick={() => signIn(false)}
-                  label="Sign in / Sign up with Google"
-                />
-                <button
-                  type="button"
-                  onClick={() => setGoogleAuthModalOpen(true)}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer inline-flex items-center gap-1.5 font-medium"
-                >
-                  <span>Open Google Account Details Form</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>CBT Online Mock Tests with Instant Rank</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>Official Verified Certificate of Merit</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>Physics &amp; Chemistry Chapter Handwritten Notes</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-4 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Safe &amp; encrypted Google Cloud authentication</span>
-            </div>
+        {/* Student Sign-Up & Sign-In Card */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm relative overflow-hidden space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <span>Student Sign-Up with Gmail</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Enter your details to create or access your student profile:
+            </p>
           </div>
 
-          {/* Card 2: Student Sign-Up with Gmail */}
-          <div className="rounded-2xl border border-amber-300/80 dark:border-amber-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
-              Instant Sign-Up
+          <form onSubmit={handleDirectGoogleLogin} className="space-y-3.5">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Student Full Name *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Md Sartaj Alam"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
             </div>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  <span>Student Sign-Up with Gmail</span>
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Enter your Google / Gmail ID to create your student account immediately:
-                </p>
-              </div>
 
-              <form onSubmit={handleDirectGoogleLogin} className="space-y-3 pt-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Student Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Md Sartaj Alam"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Google / Gmail Address *
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="e.g. sartaj@gmail.com"
+                value={studentEmail}
+                onChange={(e) => setStudentEmail(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                Your test scores &amp; merit certificates will be linked to this Gmail.
+              </p>
+            </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Google / Gmail Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="e.g. sartaj@gmail.com"
-                    value={studentEmail}
-                    onChange={(e) => setStudentEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Class
-                    </label>
-                    <select
-                      value={guestClass}
-                      onChange={(e) => setGuestClass(e.target.value as '11th' | '12th')}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="12th">Class 12th I.Sc.</option>
-                      <option value="11th">Class 11th I.Sc.</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Board
-                    </label>
-                    <select
-                      value={guestBoard}
-                      onChange={(e) => setGuestBoard(e.target.value as 'BSEB' | 'CBSE')}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="BSEB">BSEB (Bihar Board)</option>
-                      <option value="CBSE">CBSE Board</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Mobile / WhatsApp No. (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="e.g. 9876543210"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0F2942] hover:bg-[#1a3d5f] dark:bg-amber-500 dark:hover:bg-amber-600 text-white dark:text-slate-950 font-bold text-sm shadow cursor-pointer transition-all"
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Class
+                </label>
+                <select
+                  value={guestClass}
+                  onChange={(e) => setGuestClass(e.target.value as '11th' | '12th')}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
-                  <span>Continue with Google Account</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
+                  <option value="12th">Class 12th I.Sc.</option>
+                  <option value="11th">Class 11th I.Sc.</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Board
+                </label>
+                <select
+                  value={guestBoard}
+                  onChange={(e) => setGuestBoard(e.target.value as 'BSEB' | 'CBSE')}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="BSEB">BSEB (Bihar Board)</option>
+                  <option value="CBSE">CBSE Board</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Mobile / WhatsApp No. <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="tel"
+                placeholder="e.g. 9876543210"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full mt-2 inline-flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F2942] hover:bg-[#1a3d5f] text-white font-bold text-sm shadow-md cursor-pointer transition-all"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
+              <span>Continue with Google Account</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          {/* Feature Highlights */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>CBT Online Mock Tests</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Verified Certificates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+              <span>Physics &amp; Chemistry Notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Free Cloud Account</span>
             </div>
           </div>
         </div>
