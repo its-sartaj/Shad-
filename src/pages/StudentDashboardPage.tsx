@@ -68,6 +68,7 @@ export const StudentDashboardPage: React.FC = () => {
 
   // Admin Direct Access State
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('Shad Concept class');
   const [adminPasscode, setAdminPasscode] = useState('');
 
   useEffect(() => {
@@ -161,19 +162,32 @@ export const StudentDashboardPage: React.FC = () => {
 
   const handleAdminDirectLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    const u = adminUsername.trim();
     const cleanPass = adminPasscode.trim();
-    // Authorized director passcodes: 'alam@2026', 'scc@admin', or coaching pincode '845436'
-    if (cleanPass === 'alam@2026' || cleanPass === 'scc@admin' || cleanPass === '845436') {
+    const isUserValid =
+      u.toLowerCase() === 'shad concept class' ||
+      u.toLowerCase() === 'shad' ||
+      u.toLowerCase() === 'admin' ||
+      u.toLowerCase() === 'er. m.n. alam';
+    const isPassValid =
+      cleanPass === 'Shad' ||
+      cleanPass.toLowerCase() === 'shad' ||
+      cleanPass === 'alam@2026' ||
+      cleanPass === 'scc@admin' ||
+      cleanPass === '845436';
+
+    if (isUserValid && isPassValid) {
       signInLocally({
-        name: 'Er. M.N. Alam',
+        name: u || 'Shad Concept class',
         className: '12th',
         board: 'BSEB',
         email: BOOTSTRAPPED_ADMIN_EMAIL,
         role: 'admin',
       });
       setRoute(PageRoute.ADMIN);
+      showToast('Admin login successful! Welcome Shad Concept class.', 'success');
     } else {
-      showToast('Incorrect director passcode. Hint: alam@2026 or scc@admin', 'error');
+      showToast('Invalid credentials. Username: "Shad Concept class" & Password: "Shad"', 'error');
     }
   };
 
@@ -322,36 +336,53 @@ export const StudentDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Teacher / Admin Quick Access */}
+            {/* Admin Panel Access */}
             <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   <Key className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Director &amp; Faculty Access (Er. M.N. Alam)</span>
+                  <span>Admin Panel Access</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAdminLogin(!showAdminLogin)}
                   className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
                 >
-                  {showAdminLogin ? 'Hide Passcode' : 'Director Login'}
+                  {showAdminLogin ? 'Hide Form' : 'Admin Login'}
                 </button>
               </div>
 
               {showAdminLogin && (
                 <form onSubmit={handleAdminDirectLogin} className="space-y-2 pt-1">
-                  <input
-                    type="password"
-                    placeholder="Enter Director Passcode (e.g. alam@2026)"
-                    value={adminPasscode}
-                    onChange={(e) => setAdminPasscode(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Shad Concept class"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-0.5">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Enter Password (Shad)"
+                      value={adminPasscode}
+                      onChange={(e) => setAdminPasscode(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
                   <button
                     type="submit"
                     className="w-full py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-sm cursor-pointer"
                   >
-                    Enter Admin Dashboard (Director)
+                    Enter Admin Dashboard
                   </button>
                 </form>
               )}

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  ArrowLeft,
   BarChart3,
   BellPlus,
   BookPlus,
@@ -8,6 +9,7 @@ import {
   FilePlus2,
   FileSpreadsheet,
   Lock,
+  LogOut,
   Plus,
   Trash2,
   Upload,
@@ -28,7 +30,7 @@ import {
   GoogleFormResponseItem,
 } from '../lib/googleForms';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
-import { Course, MockTest, NotificationAlert, StudyNote, TestQuestion } from '../types';
+import { Course, MockTest, NotificationAlert, PageRoute, StudyNote, TestQuestion } from '../types';
 
 type AdminTab = 'courses' | 'notes' | 'tests' | 'analytics' | 'alerts';
 
@@ -52,26 +54,43 @@ export const AdminDashboardPage: React.FC = () => {
     allAttemptsForAdmin,
     allInquiriesForAdmin,
     allEnrollmentsForAdmin,
+    setRoute,
+    signOut,
     showToast,
   } = useApp();
 
   const [tab, setTab] = useState<AdminTab>('courses');
   const [seeding, setSeeding] = useState(false);
-  const [directorPasscode, setDirectorPasscode] = useState('');
+  const [adminUsername, setAdminUsername] = useState('Shad Concept class');
+  const [adminPassword, setAdminPassword] = useState('');
 
   const handleDirectorLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = directorPasscode.trim();
-    if (clean === 'alam@2026' || clean === 'scc@admin' || clean === '845436') {
+    const u = adminUsername.trim();
+    const clean = adminPassword.trim();
+    const isUserValid =
+      u.toLowerCase() === 'shad concept class' ||
+      u.toLowerCase() === 'shad' ||
+      u.toLowerCase() === 'admin' ||
+      u.toLowerCase() === 'er. m.n. alam';
+    const isPassValid =
+      clean === 'Shad' ||
+      clean.toLowerCase() === 'shad' ||
+      clean === 'alam@2026' ||
+      clean === 'scc@admin' ||
+      clean === '845436';
+
+    if (isUserValid && isPassValid) {
       signInLocally({
-        name: 'Er. M.N. Alam',
+        name: u || 'Shad Concept class',
         className: '12th',
         board: 'BSEB',
         email: 'apextech.servicess@gmail.com',
         role: 'admin',
       });
+      showToast('Admin login successful! Welcome Shad Concept class.', 'success');
     } else {
-      showToast('Incorrect passcode. Use alam@2026 or scc@admin', 'error');
+      showToast('Invalid credentials. Username: "Shad Concept class" & Password: "Shad"', 'error');
     }
   };
 
@@ -562,20 +581,40 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-6 max-w-sm mx-auto text-left space-y-3">
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              Director Passcode Login (Er. M.N. Alam)
-            </p>
+            <div className="flex items-center gap-1.5">
+              <Lock className="w-4 h-4 text-amber-500" />
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Admin Panel Login
+              </p>
+            </div>
             <form onSubmit={handleDirectorLogin} className="space-y-3">
-              <input
-                type="password"
-                placeholder="Enter Director Passcode (e.g. alam@2026)"
-                value={directorPasscode}
-                onChange={(e) => setDirectorPasscode(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  placeholder="Shad Concept class"
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter Password (Shad)"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
               <button
                 type="submit"
-                className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-sm cursor-pointer"
+                className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-sm cursor-pointer transition-all"
               >
                 Access Admin Dashboard Instantly
               </button>
@@ -590,6 +629,14 @@ export const AdminDashboardPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-300">
+              Admin: {user?.displayName || 'Shad Concept class'}
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              Active Session
+            </span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
             Admin Dashboard &amp; Performance Analytics
           </h1>
@@ -598,12 +645,28 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            onClick={() => setRoute(PageRoute.DASHBOARD)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Student Portal</span>
+          </button>
+          <button
+            type="button"
+            onClick={signOut}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 dark:border-red-900/60 text-xs font-semibold text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
+          <button
+            type="button"
             onClick={handleSeedCloud}
             disabled={seeding}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             <Database className="w-3.5 h-3.5" />
-            <span>{seeding ? 'Syncing...' : 'Sync Starter Catalog to Cloud'}</span>
+            <span>{seeding ? 'Syncing...' : 'Sync Catalog to Cloud'}</span>
           </button>
           {!accessToken && (
             <button
