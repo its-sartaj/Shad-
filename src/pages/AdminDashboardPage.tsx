@@ -204,26 +204,44 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       const reader = new FileReader();
       reader.onload = async () => {
-        const res = await fetch('/api/uploads/pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: file.name,
-            base64Data: reader.result,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'PDF upload failed');
-        setNPdfUrl(data.pdfUrl);
-        setNFileName(data.fileName);
-        setNFileSize(data.fileSizeLabel);
-        showToast(`PDF "${data.fileName}" uploaded (${data.fileSizeLabel})`, 'success');
+        let pdfUrl = '';
+        const sizeKB = Math.max(1, Math.round(file.size / 1024));
+        let fileSizeLabel = sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
+        let resolvedFileName = file.name;
+
+        try {
+          const res = await fetch('/api/uploads/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              base64Data: reader.result,
+            }),
+          });
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          if (res.ok && isJson) {
+            const data = await res.json();
+            pdfUrl = data.pdfUrl || String(reader.result);
+            resolvedFileName = data.fileName || resolvedFileName;
+            fileSizeLabel = data.fileSizeLabel || fileSizeLabel;
+          } else {
+            pdfUrl = String(reader.result);
+          }
+        } catch {
+          // Static host fallback: embed as data URL
+          pdfUrl = String(reader.result);
+        }
+
+        setNPdfUrl(pdfUrl);
+        setNFileName(resolvedFileName);
+        setNFileSize(fileSizeLabel);
+        showToast(`PDF "${resolvedFileName}" attached (${fileSizeLabel})`, 'success');
         setUploadingPdf(false);
       };
       reader.readAsDataURL(file);
     } catch (err) {
       setUploadingPdf(false);
-      showToast(err instanceof Error ? err.message : 'PDF upload failed.', 'error');
+      showToast(err instanceof Error ? err.message : 'PDF attachment failed.', 'error');
     }
   };
 

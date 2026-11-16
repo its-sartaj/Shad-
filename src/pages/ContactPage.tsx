@@ -45,8 +45,8 @@ export const ContactPage: React.FC = () => {
         }
       }
 
+      const inquiryId = `inq_${Date.now()}`;
       if (user && user.emailVerified) {
-        const inquiryId = `inq_${Date.now()}`;
         try {
           await setDoc(doc(db, 'inquiries', inquiryId), {
             id: inquiryId,
@@ -60,8 +60,17 @@ export const ContactPage: React.FC = () => {
             updatedAt: serverTimestamp(),
           });
         } catch (err) {
-          handleFirestoreError(err, OperationType.CREATE, `inquiries/${inquiryId}`);
+          console.warn('Could not sync inquiry to cloud:', err);
         }
+      }
+
+      // Local backup so inquiry is never lost
+      try {
+        const local = JSON.parse(localStorage.getItem('scc_inquiries_local') || '[]');
+        local.unshift({ id: inquiryId, name, phone, className, message, submittedAt: new Date().toISOString() });
+        localStorage.setItem('scc_inquiries_local', JSON.stringify(local.slice(0, 50)));
+      } catch {
+        // storage quota fallback
       }
 
       setSubmitted(true);

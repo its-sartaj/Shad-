@@ -239,7 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Push notifications enabled for upcoming exams and deadlines.', 'success');
       new Notification('Shad Concept Classes', {
         body: 'Exam reminders and assignment deadline alerts are now active.',
-        icon: '/pwa-192x192.png',
+        icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
       });
     } else {
       showToast('Notification permission was not granted.', 'info');
@@ -258,7 +258,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       },
       (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'courses');
+        console.warn('Using offline courses seed:', err);
+        setCourses(INITIAL_COURSES);
       }
     );
 
@@ -273,7 +274,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       },
       (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'notes');
+        console.warn('Using offline notes seed:', err);
+        setNotes(INITIAL_NOTES);
       }
     );
 
@@ -287,7 +289,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       },
       (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'tests');
+        console.warn('Using offline tests seed:', err);
+        setTests(INITIAL_TESTS);
       }
     );
 
@@ -301,7 +304,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const newest = list[0];
             new Notification(`Shad Concept Classes · ${newest.title}`, {
               body: newest.message,
-              icon: '/pwa-192x192.png',
+              icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
             });
           }
           knownNotifCount = list.length;
@@ -312,7 +315,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       },
       (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'notifications');
+        console.warn('Using offline notifications seed:', err);
+        setNotifications(INITIAL_NOTIFICATIONS);
       }
     );
 
@@ -322,7 +326,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setForumPosts(snap.docs.map((d) => ({ ...(d.data() as ForumPost), id: d.id })));
       },
       (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'forum_posts');
+        console.warn('Could not load forum posts from cloud:', err);
       }
     );
 

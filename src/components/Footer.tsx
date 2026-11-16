@@ -5,7 +5,7 @@ import { PageRoute } from '../types';
 import { SccLogo } from './SccLogo';
 
 export const Footer: React.FC = () => {
-  const { setRoute } = useApp();
+  const { setRoute, isAdmin } = useApp();
 
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 no-print">
@@ -48,6 +48,7 @@ export const Footer: React.FC = () => {
               { label: 'Teacher Doubt Forum', r: PageRoute.FORUM },
               { label: 'Student Portal', r: PageRoute.DASHBOARD },
               { label: 'Contact & Campus Map', r: PageRoute.CONTACT },
+              ...(isAdmin ? [{ label: 'Admin Panel', r: PageRoute.ADMIN }] : []),
             ].map((item) => (
               <li key={item.r}>
                 <button

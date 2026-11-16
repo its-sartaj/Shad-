@@ -6,11 +6,12 @@ import {
   CheckCircle2,
   CreditCard,
   Download,
+  Lock,
   LogOut,
   TrendingUp,
   UserCheck,
 } from 'lucide-react';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { downloadCertificatePng } from '../lib/certificateGenerator';
@@ -20,6 +21,7 @@ import { PageRoute } from '../types';
 export const StudentDashboardPage: React.FC = () => {
   const {
     user,
+    isAdmin,
     userProfile,
     userPrivateInfo,
     enrollments,
@@ -66,21 +68,26 @@ export const StudentDashboardPage: React.FC = () => {
     if (!user || !user.emailVerified) return;
     setSavingProfile(true);
     try {
-      await setDoc(
-        doc(db, 'users', user.uid),
-        {
+      if (userProfile) {
+        await updateDoc(doc(db, 'users', user.uid), {
+          displayName: (displayName.trim() || 'Student').slice(0, 100),
+          className,
+          board,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           displayName: (displayName.trim() || 'Student').slice(0, 100),
           className,
           board,
-          preferredTheme: userProfile?.preferredTheme || 'light',
-          bookmarkedNoteIds: userProfile?.bookmarkedNoteIds || [],
-          completedNoteIds: userProfile?.completedNoteIds || [],
-          createdAt: userProfile?.createdAt || serverTimestamp(),
+          preferredTheme: 'light',
+          bookmarkedNoteIds: [],
+          completedNoteIds: [],
+          createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+        });
+      }
 
       await setDoc(
         doc(db, 'users', user.uid, 'private', 'info'),
@@ -148,14 +155,26 @@ export const StudentDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={signOut}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 self-start cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sign Out</span>
-        </button>
+        <div className="flex items-center gap-2 self-start">
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setRoute(PageRoute.ADMIN)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-sm cursor-pointer"
+            >
+              <Lock className="w-4 h-4" />
+              <span>Admin Panel</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={signOut}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}

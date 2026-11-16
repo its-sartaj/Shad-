@@ -216,7 +216,19 @@ export const CampusLocationMap: React.FC<CampusLocationMapProps> = ({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setRouteTrigger((c) => c + 1)}
+            onClick={() => {
+              if (mapsApiKey) {
+                setRouteTrigger((c) => c + 1);
+              } else {
+                window.open(
+                  `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+                    originInput
+                  )}&destination=H.F.H.S+School+Phenhara,+East+Champaran,+Bihar`,
+                  '_blank',
+                  'noopener,noreferrer'
+                );
+              }
+            }}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0F2942] dark:bg-amber-500 text-white dark:text-slate-950 text-xs font-bold whitespace-nowrap cursor-pointer"
           >
             <Navigation className="w-3.5 h-3.5" />
@@ -265,12 +277,27 @@ export const CampusLocationMap: React.FC<CampusLocationMapProps> = ({
             </GoogleMap>
           </APIProvider>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-2 text-slate-600 dark:text-slate-300">
-            <MapPin className="w-8 h-8 text-amber-600" />
-            <p className="text-sm font-semibold">Loading Interactive Google Map...</p>
-            <p className="text-xs text-slate-500">
-              Near H.F.H.S School Phenhara, East Champaran, Bihar
-            </p>
+          <div className="w-full h-full relative min-h-[300px]">
+            <iframe
+              title="Shad Concept Classes Campus Location"
+              width="100%"
+              height="100%"
+              style={{ border: 0, minHeight: '300px' }}
+              loading="lazy"
+              allowFullScreen
+              src="https://maps.google.com/maps?q=H.F.H.S+School+Phenhara,+East+Champaran,+Bihar&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            />
+            <div className="absolute bottom-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 shadow-md">
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=H.F.H.S+School+Phenhara+East+Champaran+Bihar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-[#0F2942] dark:text-amber-400 hover:underline flex items-center gap-1.5"
+              >
+                <MapPin className="w-3.5 h-3.5 text-amber-600" />
+                <span>Open in Google Maps</span>
+              </a>
+            </div>
           </div>
         )}
       </div>

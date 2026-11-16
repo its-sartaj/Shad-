@@ -6,7 +6,7 @@ import courseMathematicsBoardImg from '../assets/images/course_mathematics_board
 
 export const HERO_IMAGE_PATH = heroCoachingCampusImg;
 export const DEFAULT_COURSE_IMAGE = coursePhysicsOpticsImg;
-export const POSTER_IMAGE_PATH = '/assets/aistudio/WhatsApp_Image_2026-11-15_at_14.31.46_ae9b6066.jpeg';
+export const POSTER_IMAGE_PATH = `${import.meta.env.BASE_URL}assets/aistudio/WhatsApp_Image_2026-11-15_at_14.31.46_ae9b6066.jpeg`;
 
 export const TOPPERS_2024 = [
   { name: 'Mohammad Safaullah', marks: 422, outOf: 500, stream: 'I.Sc. (12th Board)' },
